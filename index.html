@@ -224,11 +224,14 @@ button:disabled{opacity:.4;cursor:not-allowed}
 .bulk b{grid-column:1/-1}
 .bulk button{min-height:48px;width:100%;display:flex;align-items:center;justify-content:center;text-align:center;padding:4px 6px}
 .mr button{width:44px;min-width:44px;height:44px;min-height:44px;padding:0;flex:none;display:grid;place-items:center}
+.dt{order:1;flex:0 0 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:6px 12px;border-left:2px solid var(--bd);font-family:var(--hf);text-transform:uppercase;text-align:center;line-height:1.1;white-space:nowrap}
+.dt b{font-weight:400;font-size:1.7rem;letter-spacing:.5px}
+.dt span{font-size:1rem;letter-spacing:.5px}
 </style>
 </head>
 <body>
 <div class="wrap">
-<header><h1>Mi Tablero de Estudio</h1><div class="hb"><button data-a="stats" aria-label="Estadísticas">📊</button><button class="g" data-a="ajustes" aria-label="Ajustes">⚙</button></div></header>
+<header><h1>Mi Tablero de Estudio</h1><div class="dt" id="dt" aria-label="Fecha de hoy"></div><div class="hb"><button data-a="stats" aria-label="Estadísticas">📊</button><button class="g" data-a="ajustes" aria-label="Ajustes">⚙</button></div></header>
 <p class="sub" id="frase"></p>
 <div id="top"></div>
 <div id="edbar"></div>
@@ -341,7 +344,8 @@ function stats(){const n=streak(),m=nextMs(n),w=weekMin(),g=s.goal||120,p=Math.m
 const hd=(k,ti)=>`<h3 class="rs" data-a="scol" data-i="${k}" role="button" aria-expanded="${!s.col[k]}">${ti} <b>${s.col[k]?'+':'−'}</b></h3>`;
 $('#dlg').innerHTML=dh('Estadísticas',1)+hd('st_goal','🎯 Objetivo semanal')+(s.col.st_goal?'':`<div class="f2"><div><label for="goal">Minutos a cumplir por semana</label><input type="number" id="goal" min="1" value="${g}"></div><div><label>&nbsp;</label><button class="full" style="margin-top:0" data-a="goal">Guardar</button></div></div><button class="g full" data-a="up">＋ Subir meta un 10 %</button><div class="tr" style="margin-top:8px"><b>🎯 ${w}/${g} min</b><span class="sm">${p}%</span></div><div class="bar"><i style="width:${p}%"></i></div>`)
 +hd('st_racha','🔥 Racha')+(s.col.st_racha?'':`<div class="big">${n} ${n===1?'día':'días'}</div><div class="sm">seguidos estudiando · meta: ${lbl(m)}</div><div class="bar"><i style="width:${Math.round(n/m*100)}%"></i></div><div class="sm" style="margin-top:12px">Ver gráfico por materia</div><div class="flt"><button class="fb ${statSub==null?'sel':''}" data-a="ssub" data-i="*">Total (todas)</button>${subs.map(x=>`<button class="fb ${statSub===x?'sel':''}" data-a="ssub" data-i="${esc(x)}">${x?esc(x):'Sin materia'}</button>`).join('')}</div><p><b>${tot} min</b> ${statSub==null?'en total (todas las materias)':'en '+esc(nm)} · hoy: ${L[dk(Date.now())]||0} min</p>${statSub==null?'':`<p class="sm">Total de todas las materias: <b>${all} min</b></p>`}${chart(L)}<div class="sm">Minutos por día (últimos 14 días)${nm?' · '+esc(nm):''}</div>`+(Object.keys(by).length?`<div class="sm" style="margin-top:12px">Minutos por materia (total ${all} min)</div>`+Object.keys(by).sort((a,b)=>by[b]-by[a]).map(x=>`<div class="tr"><span>${x?esc(x):'Sin materia'}</span><b>${by[x]} min</b></div><div class="bar"><i style="width:${Math.round(by[x]/mx*100)}%"></i></div>`).join(''):'<p class="sm">Todavía no registraste minutos.</p>'))}
-function tick(){const a=s.sess,c=$('#clk');if(!c)return;const i=$('#inf');
+function setFecha(){const e=$('#dt');if(!e)return;const d=new Date(),k=dk(d);if(e.dataset.k===k)return;e.dataset.k=k;e.innerHTML='<b>'+['DOM','LUN','MAR','MIÉ','JUE','VIE','SÁB'][d.getDay()]+'</b><span>'+String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getFullYear()%100).padStart(2,'0')+'</span>'}
+function tick(){setFecha();const a=s.sess,c=$('#clk');if(!c)return;const i=$('#inf');
 if(!a){const d=Math.max(1,+s.dur||15);c.textContent=String(d).padStart(2,'0')+':00';i.textContent='';return}
 const el=(a.el||0)+(a.pa?0:Date.now()-a.st),r=a.dur*60000-el;if(r<=0){add(a.dur,a.sub);s.sess=null;msg='¡Sesión completa! Sumaste '+a.dur+' min 🎉';save();try{navigator.vibrate&&navigator.vibrate(300)}catch(e){}render();return}
 const t=Math.ceil(r/1000);c.textContent=String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0');i.textContent=(a.sub?a.sub+' · ':'')+'Comenzó '+hm(a.t0||a.st)+(a.pa?' · en pausa':' · termina '+hm(Date.now()+r))}
